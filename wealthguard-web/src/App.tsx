@@ -12,6 +12,8 @@ import {
   TrendingUp,
   Lightbulb,
   Globe,
+  BarChart3,
+  TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Portfolio from './pages/Portfolio';
@@ -20,6 +22,8 @@ import Budgets from './pages/Budgets';
 import Alerts from './pages/Alerts';
 import Advisor from './pages/Advisor';
 import AShare from './pages/AShare';
+import Performance from './pages/Performance';
+import CashFlow from './pages/CashFlow';
 import './index.css';
 
 function App() {
@@ -29,6 +33,8 @@ function App() {
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/portfolio', icon: PieChart, label: 'Portfolio' },
+    { path: '/performance', icon: BarChart3, label: 'Performance' },
+    { path: '/cashflow', icon: TrendingUpIcon, label: 'Cash Flow' },
     { path: '/advisor', icon: Lightbulb, label: 'Advisor' },
     { path: '/ashare', icon: Globe, label: 'A-Share' },
     { path: '/transactions', icon: Receipt, label: 'Transactions' },
@@ -120,6 +126,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/portfolio" element={<Portfolio />} />
+              <Route path="/performance" element={<Performance />} />
+              <Route path="/cashflow" element={<CashFlow />} />
               <Route path="/advisor" element={<Advisor />} />
               <Route path="/ashare" element={<AShare />} />
               <Route path="/transactions" element={<Transactions />} />

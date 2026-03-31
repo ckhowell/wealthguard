@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
-  Globe, TrendingUp, TrendingDown, Activity,
-  RefreshCw, AlertCircle, Clock
+  Globe, TrendingUp, TrendingDown, Clock,
+  RefreshCw, AlertCircle
 } from 'lucide-react';
 import { 
   fetchAShareQuotes, 

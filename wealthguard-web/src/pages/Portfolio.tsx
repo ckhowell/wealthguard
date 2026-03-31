@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { usePersistentState, useToast } from '../hooks/usePersistentState';
 import ToastContainer from '../components/ToastContainer';
+import RiskAnalysis from '../components/RiskAnalysis';
 
 interface RealEstate {
   id: number;
@@ -568,6 +569,9 @@ const Portfolio = () => {
           </div>
         </div>
       </div>
+
+      {/* Risk Analysis */}
+      <RiskAnalysis />
 
       {/* Add Holding Buttons */}
       <div className="flex flex-wrap gap-2">

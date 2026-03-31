@@ -11,6 +11,7 @@ import {
   DollarSign,
   TrendingUp,
   Lightbulb,
+  Globe,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Portfolio from './pages/Portfolio';
@@ -18,6 +19,7 @@ import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Alerts from './pages/Alerts';
 import Advisor from './pages/Advisor';
+import AShare from './pages/AShare';
 import './index.css';
 
 function App() {
@@ -28,6 +30,7 @@ function App() {
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/portfolio', icon: PieChart, label: 'Portfolio' },
     { path: '/advisor', icon: Lightbulb, label: 'Advisor' },
+    { path: '/ashare', icon: Globe, label: 'A-Share' },
     { path: '/transactions', icon: Receipt, label: 'Transactions' },
     { path: '/budgets', icon: Wallet, label: 'Budgets' },
     { path: '/alerts', icon: Bell, label: 'Alerts' },
@@ -118,6 +121,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/advisor" element={<Advisor />} />
+              <Route path="/ashare" element={<AShare />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/budgets" element={<Budgets />} />
               <Route path="/alerts" element={<Alerts />} />

@@ -24,6 +24,7 @@ import Advisor from './pages/Advisor';
 import AShare from './pages/AShare';
 import Performance from './pages/Performance';
 import CashFlow from './pages/CashFlow';
+import Markets from './pages/Markets';
 import './index.css';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
     { path: '/performance', icon: BarChart3, label: 'Performance' },
     { path: '/cashflow', icon: TrendingUpIcon, label: 'Cash Flow' },
     { path: '/advisor', icon: Lightbulb, label: 'Advisor' },
+    { path: '/markets', icon: Globe, label: 'Markets (US/AU/CN)' },
     { path: '/ashare', icon: Globe, label: 'A-Share' },
     { path: '/transactions', icon: Receipt, label: 'Transactions' },
     { path: '/budgets', icon: Wallet, label: 'Budgets' },
@@ -129,6 +131,7 @@ function App() {
               <Route path="/performance" element={<Performance />} />
               <Route path="/cashflow" element={<CashFlow />} />
               <Route path="/advisor" element={<Advisor />} />
+              <Route path="/markets" element={<Markets />} />
               <Route path="/ashare" element={<AShare />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/budgets" element={<Budgets />} />

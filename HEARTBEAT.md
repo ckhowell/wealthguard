@@ -1,32 +1,85 @@
-# HEARTBEAT.md - WealthGuard Development Updates
+# HEARTBEAT.md - WealthGuard Autonomous Operations
 
-## Scheduled Task: Send Telegram Update Every 30 Minutes
+## DO NOT JUST CHECK - ACTUALLY DO THINGS
 
-### Action
-Send a summary of recent WealthGuard development progress to Telegram every 30 minutes.
+Every heartbeat, you MUST do at least ONE of the following:
 
-### Telegram Configuration
-- Bot: @chruzzbot
-- Chat ID: 8504580841
-- Token: Stored in .env.telegram (excluded from git)
+### 1. Price Sync Check
+- Check if backend API is running (`curl http://localhost:8000/`)
+- If NOT running: start it with `./start_backend.sh`
+- If running: check if prices are stale (> 10 minutes old)
+- If stale: trigger manual sync via API
 
-### Steps
-1. Run `/root/.openclaw/workspace/scripts/telegram_update.sh`
-2. Script collects:
-   - TypeScript file count
-   - Total lines of code
-   - Recent git commits
-   - Brisbane time
-3. Sends formatted message via Telegram Bot API
+### 2. Telegram Update
+- Send development progress to Telegram every 30 minutes
+- Script: `/root/.openclaw/workspace/scripts/telegram_update.sh`
+- Include: code stats, commit history, live URL
 
-### Update Schedule
-- Every 30 minutes
-- Timezone: Brisbane AEST (UTC+10)
+### 3. Portfolio Health Check
+- Query `/api/portfolio/summary`
+- If total_value drops > 5%: alert user
+- Check for any holdings without price updates (> 24 hours)
 
-### Manual Trigger
+### 4. Log Cleanup
+- Archive old logs from `/tmp/wealthguard_*.log`
+- Delete logs older than 7 days
+
+### 5. Memory Update
+- Review today's `memory/YYYY-MM-DD.md`
+- Update `MEMORY.md` with important decisions
+- Document any issues encountered
+
+---
+
+## IMMEDIATE ACTIONS FOR THIS HEARTBEAT
+
+**Current Status Check:**
+- [ ] Backend API running?
+- [ ] Prices fresh (last 10 min)?
+- [ ] Telegram update needed?
+
+**Active Work Items:**
+1. Finish WealthGuard live data integration
+2. Get API key for stock prices (Finnhub)
+3. Test full end-to-end flow
+
+---
+
+## MANUAL COMMANDS
+
+Start everything:
+```bash
+cd /root/.openclaw/workspace
+./start_backend.sh
+cd wealthguard-web && npm run dev
+```
+
+Check API:
+```bash
+curl http://localhost:8000/
+curl http://localhost:8000/api/portfolio/summary
+```
+
+Trigger sync:
+```bash
+curl -X POST http://localhost:8000/api/sync/prices
+```
+
+Send Telegram update:
 ```bash
 /root/.openclaw/workspace/scripts/telegram_update.sh
 ```
 
-### Last Update Time
-Tracked automatically via script execution.
+---
+
+## REMEMBER
+
+**You are WealthGuard's autonomous operator.**
+Don't wait for permission. Don't ask "should I?" Just DO.
+
+If the backend is down → Start it.
+If prices are stale → Sync them.
+If 30 minutes passed → Send update.
+If something broke → Fix it or document it.
+
+**BE USEFUL WITHOUT BEING ASKED.**

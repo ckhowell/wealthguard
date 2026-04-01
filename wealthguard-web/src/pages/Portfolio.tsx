@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -108,7 +108,70 @@ const Portfolio = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [holdingType, setHoldingType] = useState<string>('stock');
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const { toasts, addToast, removeToast } = useToast();
+
+  // Fetch live stock prices from API
+  useEffect(() => {
+    const fetchLivePrices = async () => {
+      try {
+        // Get stock symbols from holdings
+        const stockSymbols = holdings
+          .filter(h => h.type === 'stock')
+          .map(h => (h as Stock).symbol);
+        
+        if (stockSymbols.length === 0) return;
+        
+        // Fetch from API for each symbol
+        const priceMap: Record<string, number> = {};
+        
+        await Promise.all(
+          stockSymbols.map(async (symbol) => {
+            try {
+              const response = await fetch(`/api/markets/US`);
+              if (response.ok) {
+                const data = await response.json();
+                const stockData = data.stocks?.find((s: any) => s.symbol === symbol);
+                if (stockData?.price) {
+                  priceMap[symbol] = stockData.price;
+                }
+              }
+            } catch (err) {
+              console.error(`Failed to fetch price for ${symbol}:`, err);
+            }
+          })
+        );
+        
+        setLivePrices(priceMap);
+      } catch (err) {
+        console.error('Failed to fetch live prices:', err);
+      }
+    };
+    
+    fetchLivePrices();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchLivePrices, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [holdings]);
+
+  // Update stock values based on live prices
+  useEffect(() => {
+    if (Object.keys(livePrices).length === 0) return;
+    
+    setHoldings(prev => prev.map(holding => {
+      if (holding.type === 'stock') {
+        const stock = holding as Stock;
+        const livePrice = livePrices[stock.symbol];
+        if (livePrice) {
+          return {
+            ...stock,
+            value: stock.units * livePrice
+          };
+        }
+      }
+      return holding;
+    }));
+  }, [livePrices, setHoldings]);
 
   // Form states
   const [formData, setFormData] = useState<Record<string, any>>({});

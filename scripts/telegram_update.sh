@@ -18,8 +18,22 @@ BACKEND_LINE_COUNT=$(cat *.py 2>/dev/null | wc -l)
 # Get recent commits
 COMMITS=$(git log --oneline -5 2>/dev/null | head -5)
 
+# Check for uncommitted changes
+UNCOMMITTED=$(git status --porcelain 2>/dev/null | wc -l)
+if [ "$UNCOMMITTED" -gt 0 ]; then
+    GIT_STATUS="⚠️ ${UNCOMMITTED} uncommitted changes"
+else
+    GIT_STATUS="✅ All changes committed"
+fi
+
 # Get Brisbane time
 BRISBANE_TIME=$(TZ=Australia/Brisbane date '+%I:%M %p')
+
+# Get current Cloudflare tunnel URL (from running process)
+CLOUDFLARE_URL=$(pgrep -a cloudflared 2>/dev/null | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | head -1)
+if [ -z "$CLOUDFLARE_URL" ]; then
+    CLOUDFLARE_URL="https://mortgages-sufficiently-hist-homework.trycloudflare.com"
+fi
 
 # Build message
 MESSAGE="🔄 **WealthGuard Update** ${BRISBANE_TIME} AEST
@@ -35,7 +49,9 @@ MESSAGE="🔄 **WealthGuard Update** ${BRISBANE_TIME} AEST
 📝 **Recent Commits:**
 ${COMMITS}
 
-🌐 **Live Dashboard:** https://given-ethics-part-gauge.trycloudflare.com
+${GIT_STATUS}
+
+🌐 **Live Dashboard:** ${CLOUDFLARE_URL}
 📡 **API Endpoint:** http://localhost:8000
 
 ---

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -103,6 +103,8 @@ const categoryColors: Record<string, string> = {
 
 const Portfolio = () => {
   const [holdings, setHoldings] = usePersistentState<Holding[]>('wealthguard-holdings', initialHoldings);
+  const [apiHoldings, setApiHoldings] = useState<any[]>([]);
+  const [_loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_activeTab, _setActiveTab] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
@@ -110,6 +112,52 @@ const Portfolio = () => {
   const [holdingType, setHoldingType] = useState<string>('stock');
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const { toasts, addToast, removeToast } = useToast();
+
+  // Fetch holdings from database API
+  useEffect(() => {
+    const fetchApiHoldings = async () => {
+      try {
+        const response = await fetch('/api/holdings');
+        if (response.ok) {
+          const data = await response.json();
+          setApiHoldings(data.holdings || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch holdings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApiHoldings();
+  }, []);
+
+  // Merge API holdings with local stocks (prioritize API data for stocks)
+  const mergedHoldings = useMemo(() => {
+    if (apiHoldings.length === 0) return holdings;
+    
+    // Create map of API stock holdings
+    const apiStockMap = new Map();
+    apiHoldings.forEach((h: any) => {
+      if (h.asset_class === 'equity') {
+        apiStockMap.set(h.symbol, h);
+      }
+    });
+    
+    // Update local holdings with API data
+    return holdings.map(h => {
+      if (h.type === 'stock') {
+        const apiData = apiStockMap.get((h as Stock).symbol);
+        if (apiData) {
+          return {
+            ...h,
+            units: apiData.shares || (h as Stock).units,
+            value: (apiData.shares || 0) * (apiData.current_price || 0)
+          };
+        }
+      }
+      return h;
+    });
+  }, [holdings, apiHoldings]);
 
   // Fetch live stock prices from API
   useEffect(() => {
@@ -176,11 +224,11 @@ const Portfolio = () => {
   // Form states
   const [formData, setFormData] = useState<Record<string, any>>({});
 
-  const realEstateHoldings = holdings.filter(h => h.type === 'realEstate') as RealEstate[];
-  const cryptoHoldings = holdings.filter(h => h.type === 'crypto') as Crypto[];
-  const vehicleHoldings = holdings.filter(h => h.type === 'vehicle') as Vehicle[];
-  const stockHoldings = holdings.filter(h => h.type === 'stock') as Stock[];
-  const cashHoldings = holdings.filter(h => h.type === 'cash') as Cash[];
+  const realEstateHoldings = mergedHoldings.filter(h => h.type === 'realEstate') as RealEstate[];
+  const cryptoHoldings = mergedHoldings.filter(h => h.type === 'crypto') as Crypto[];
+  const vehicleHoldings = mergedHoldings.filter(h => h.type === 'vehicle') as Vehicle[];
+  const stockHoldings = mergedHoldings.filter(h => h.type === 'stock') as Stock[];
+  const cashHoldings = mergedHoldings.filter(h => h.type === 'cash') as Cash[];
 
   const totals = {
     realEstate: realEstateHoldings.reduce((sum, h) => sum + h.value, 0),

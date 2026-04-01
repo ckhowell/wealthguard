@@ -120,7 +120,8 @@ const Portfolio = () => {
         const response = await fetch('/api/holdings');
         if (response.ok) {
           const data = await response.json();
-          setApiHoldings(data.holdings || []);
+          // API returns array directly, not {holdings: [...]}
+          setApiHoldings(Array.isArray(data) ? data : (data.holdings || []));
         }
       } catch (err) {
         console.error('Failed to fetch holdings:', err);

@@ -11,6 +11,9 @@ import { usePersistentState, useToast } from '../hooks/usePersistentState';
 import ToastContainer from '../components/ToastContainer';
 import RiskAnalysis from '../components/RiskAnalysis';
 
+// USD to AUD conversion rate
+const USD_TO_AUD = 1.55;
+
 interface RealEstate {
   id: number;
   name: string;
@@ -59,38 +62,39 @@ interface Cash {
   institution: string;
   type: 'cash';
   apy?: number;
+  currency?: string;
 }
 
 type Holding = RealEstate | Crypto | Vehicle | Stock | Cash;
 
 const initialHoldings: Holding[] = [
-  // Real Estate
+  // Real Estate - Updated values
   { id: 1, name: 'Southport QLD Property', value: 1100000, location: 'Australia', type: 'realEstate', purchaseDate: '2020-03-15' },
-  { id: 2, name: 'Niseko Japan Property', value: 501435, location: 'Japan', type: 'realEstate', purchaseDate: '2019-06-20' },
+  { id: 2, name: 'Niseko Japan Property', value: 400000, location: 'Japan', type: 'realEstate', purchaseDate: '2019-06-20' },
   { id: 3, name: 'Ansons Bay TAS (143-145)', value: 470000, location: 'Australia', type: 'realEstate', purchaseDate: '2021-01-10' },
   { id: 4, name: 'Ansons Bay TAS (18)', value: 420000, location: 'Australia', type: 'realEstate', purchaseDate: '2021-01-10' },
-  // Cash - Two Rabo accounts, one Wise account (from user's actual bank data)
-  { id: 5, name: 'Rabobank PremiumSaver', value: 380357, institution: 'Rabobank', type: 'cash', apy: 9.52 },
-  { id: 6, name: 'Rabobank High Interest', value: 150000, institution: 'Rabobank', type: 'cash', apy: 5.75 },
-  { id: 7, name: 'Wise JPY Account', value: 50000, institution: 'Wise', type: 'cash', apy: 0 },
-  // Crypto
-  { id: 8, symbol: 'BTC', name: 'Bitcoin', units: 2.81, value: 302509, change: 5.2, type: 'crypto', avgBuyPrice: 45000 },
-  { id: 9, symbol: 'ETH', name: 'Ethereum', units: 64, value: 208631, change: 3.8, type: 'crypto', avgBuyPrice: 1800 },
-  { id: 10, symbol: 'SOL', name: 'Solana', units: 270, value: 36894, change: -2.1, type: 'crypto', avgBuyPrice: 85 },
-  { id: 11, symbol: 'XRP', name: 'Ripple', units: 2303, value: 4889, change: 1.2, type: 'crypto', avgBuyPrice: 1.2 },
-  { id: 12, symbol: 'SUI', name: 'Sui', units: 901, value: 4713, change: 8.5, type: 'crypto', avgBuyPrice: 3.5 },
+  // Cash - Updated from database (values in AUD)
+  { id: 5, name: 'Rabobank PremiumSaver', value: 261822, institution: 'Rabobank', type: 'cash', apy: 5.50, currency: 'AUD' },
+  { id: 6, name: 'Rabobank High Interest', value: 170650, institution: 'Rabobank', type: 'cash', apy: 5.50, currency: 'AUD' },
+  { id: 7, name: 'Wise JPY Account', value: 147886, institution: 'Wise', type: 'cash', apy: 0, currency: 'JPY' },
+  // Crypto - Updated values
+  { id: 8, symbol: 'BTC', name: 'Bitcoin', units: 2.81, value: 186637, change: 5.2, type: 'crypto', avgBuyPrice: 45000 },
+  { id: 9, symbol: 'ETH', name: 'Ethereum', units: 64, value: 130943, change: 3.8, type: 'crypto', avgBuyPrice: 1800 },
+  { id: 10, symbol: 'SOL', name: 'Solana', units: 270, value: 21257, change: -2.1, type: 'crypto', avgBuyPrice: 85 },
+  { id: 11, symbol: 'XRP', name: 'Ripple', units: 2303, value: 3018, change: 1.2, type: 'crypto', avgBuyPrice: 1.2 },
+  { id: 12, symbol: 'SUI', name: 'Sui', units: 901, value: 775, change: 8.5, type: 'crypto', avgBuyPrice: 3.5 },
   // Vehicles
   { id: 13, name: 'Land Rover 2023 Defender', value: 100000, vehicleType: '4WD', type: 'vehicle', year: 2023 },
   { id: 14, name: 'VW 2024 GTi Golf', value: 55000, vehicleType: 'Hatchback', type: 'vehicle', year: 2024 },
   { id: 15, name: 'Land Rover 2011 Defender', value: 20000, vehicleType: '4WD', type: 'vehicle', year: 2011 },
   { id: 16, name: 'Triumph T120 2023', value: 17000, vehicleType: 'Motorcycle', type: 'vehicle', year: 2023 },
   { id: 17, name: 'Trailer', value: 2500, vehicleType: 'Utility', type: 'vehicle', year: 2020 },
-  // Stocks
-  { id: 18, symbol: 'NVDA', name: 'NVIDIA', units: 9.56, value: 2375.95, weight: 54.9, type: 'stock', avgBuyPrice: 120 },
-  { id: 19, symbol: 'XLE', name: 'Energy ETF', units: 12.26, value: 1094.80, weight: 25.3, type: 'stock', avgBuyPrice: 75 },
-  { id: 20, symbol: 'AAPL', name: 'Apple', units: 1.18, value: 431.73, weight: 10.0, type: 'stock', avgBuyPrice: 180 },
-  { id: 21, symbol: 'GOOGL', name: 'Alphabet', units: 1.02, value: 416.92, weight: 9.6, type: 'stock', avgBuyPrice: 140 },
-  { id: 22, symbol: 'GPRO', name: 'GoPro', units: 7, value: 6.82, weight: 0.2, type: 'stock', avgBuyPrice: 8 },
+  // Stocks - Updated to match actual holdings
+  { id: 18, symbol: 'NVDA', name: 'NVIDIA', units: 22.11, value: 3885.92, weight: 46.5, type: 'stock', avgBuyPrice: 176.77 },
+  { id: 19, symbol: 'XLE', name: 'Energy ETF', units: 35.97, value: 2121.31, weight: 25.4, type: 'stock', avgBuyPrice: 62.55 },
+  { id: 20, symbol: 'AAPL', name: 'Apple', units: 1.18, value: 300.55, weight: 3.6, type: 'stock', avgBuyPrice: 300.00 },
+  { id: 21, symbol: 'GOOGL', name: 'Alphabet', units: 6.89, value: 2049.64, weight: 24.5, type: 'stock', avgBuyPrice: 290.65 },
+  { id: 22, symbol: 'GPRO', name: 'GoPro', units: 7, value: 5.04, weight: 0.1, type: 'stock', avgBuyPrice: 0.97 },
 ];
 
 const categoryColors: Record<string, string> = {
@@ -236,7 +240,7 @@ const Portfolio = () => {
     cash: cashHoldings.reduce((sum, h) => sum + h.value, 0),
     crypto: cryptoHoldings.reduce((sum, h) => sum + h.value, 0),
     vehicle: vehicleHoldings.reduce((sum, h) => sum + h.value, 0),
-    stock: stockHoldings.reduce((sum, h) => sum + h.value, 0),
+    stock: stockHoldings.reduce((sum, h) => sum + h.value, 0) * USD_TO_AUD, // Convert to AUD
   };
 
   const totalValue = Object.values(totals).reduce((sum, val) => sum + val, 0);
@@ -634,7 +638,7 @@ const Portfolio = () => {
               <Icon className={`w-5 h-5 text-${color}-600`} />
               <h3 className={`font-semibold text-${color}-900 text-sm`}>{label}</h3>
             </div>
-            <p className={`text-xl font-bold text-${color}-900`}>${(value).toLocaleString()}</p>
+            <p className={`text-xl font-bold text-${color}-900`}>${Math.round(value).toLocaleString()}</p>
             <p className={`text-xs text-${color}-600`}>{totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : 0}% of portfolio</p>
           </div>
         ))}
@@ -727,7 +731,10 @@ const Portfolio = () => {
                   <th className="text-left py-2 text-sm font-medium text-slate-500">Symbol</th>
                   <th className="text-left py-2 text-sm font-medium text-slate-500">Name</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Units</th>
-                  <th className="text-right py-2 text-sm font-medium text-slate-500">Value</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">USD/Unit</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">AUD/Unit</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">USD Value</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">AUD Value</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Actions</th>
                 </tr>
               </thead>
@@ -737,7 +744,10 @@ const Portfolio = () => {
                     <td className="py-3 font-medium text-slate-800">{stock.symbol}</td>
                     <td className="py-3 text-slate-600">{stock.name}</td>
                     <td className="py-3 text-right text-slate-600">{stock.units}</td>
-                    <td className="py-3 text-right font-medium text-slate-800">${stock.value.toLocaleString()}</td>
+                    <td className="py-3 text-right text-slate-500">${(stock.value / stock.units).toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-500">${((stock.value * USD_TO_AUD) / stock.units).toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-600">${Math.round(stock.value).toLocaleString()}</td>
+                    <td className="py-3 text-right font-medium text-slate-800">${Math.round(stock.value * USD_TO_AUD).toLocaleString()}</td>
                     <td className="py-3 text-right">
                       <button onClick={() => handleEdit(stock)} className="p-1 hover:bg-slate-100 rounded mr-1">
                         <Edit2 className="w-4 h-4 text-slate-400" />
@@ -770,7 +780,10 @@ const Portfolio = () => {
                 <tr className="border-b border-slate-200">
                   <th className="text-left py-2 text-sm font-medium text-slate-500">Asset</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Units</th>
-                  <th className="text-right py-2 text-sm font-medium text-slate-500">Value</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">USD/Unit</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">AUD/Unit</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">USD Value</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">AUD Value</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">24h</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Actions</th>
                 </tr>
@@ -785,11 +798,14 @@ const Portfolio = () => {
                       </div>
                     </td>
                     <td className="py-3 text-right text-slate-600">{coin.units}</td>
-                    <td className="py-3 text-right font-medium text-slate-800">${coin.value.toLocaleString()}</td>
+                    <td className="py-3 text-right text-slate-500">${(coin.value / coin.units).toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-500">${((coin.value * USD_TO_AUD) / coin.units).toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-600">${Math.round(coin.value).toLocaleString()}</td>
+                    <td className="py-3 text-right font-medium text-slate-800">${Math.round(coin.value * USD_TO_AUD).toLocaleString()}</td>
                     <td className="py-3 text-right">
-                      <span className={`flex items-center justify-end gap-1 text-sm ${coin.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {coin.change >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                        {Math.abs(coin.change)}%
+                      <span className={`flex items-center justify-end gap-1 text-sm ${(coin.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {(coin.change || 0) >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                        {Math.abs(coin.change || 0).toFixed(1)}%
                       </span>
                     </td>
                     <td className="py-3 text-right">
@@ -818,27 +834,44 @@ const Portfolio = () => {
               + Add Property
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {realEstateHoldings.map((property) => (
-              <div key={property.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-slate-800">{property.name}</p>
-                  <p className="text-sm text-slate-500">{property.location}</p>
-                  {property.purchaseDate && (
-                    <p className="text-xs text-slate-400">Purchased: {property.purchaseDate}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-slate-800">${property.value.toLocaleString()}</p>
-                  <button onClick={() => handleEdit(property)} className="p-1 hover:bg-slate-200 rounded">
-                    <Edit2 className="w-4 h-4 text-slate-400" />
-                  </button>
-                  <button onClick={() => handleDelete(property.id)} className="p-1 hover:bg-red-100 rounded">
-                    <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 text-sm font-medium text-slate-500">Property</th>
+                  <th className="text-left py-2 text-sm font-medium text-slate-500">Location</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Purchased</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Value</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">% of RE</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {realEstateHoldings.map((property) => {
+                  const reTotal = realEstateHoldings.reduce((sum, h) => sum + h.value, 0);
+                  const percent = reTotal > 0 ? ((property.value / reTotal) * 100).toFixed(1) : '0';
+                  return (
+                    <tr key={property.id} className="border-b border-slate-100">
+                      <td className="py-3">
+                        <p className="font-medium text-slate-800">{property.name}</p>
+                      </td>
+                      <td className="py-3 text-slate-600">{property.location}</td>
+                      <td className="py-3 text-right text-slate-500">{property.purchaseDate || '-'}</td>
+                      <td className="py-3 text-right font-medium text-slate-800">${property.value.toLocaleString()}</td>
+                      <td className="py-3 text-right text-slate-500">{percent}%</td>
+                      <td className="py-3 text-right">
+                        <button onClick={() => handleEdit(property)} className="p-1 hover:bg-slate-100 rounded mr-1">
+                          <Edit2 className="w-4 h-4 text-slate-400" />
+                        </button>
+                        <button onClick={() => handleDelete(property.id)} className="p-1 hover:bg-red-50 rounded">
+                          <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -853,28 +886,44 @@ const Portfolio = () => {
               + Add Vehicle
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vehicleHoldings.map((vehicle) => (
-              <div key={vehicle.id} className="p-4 bg-slate-50 rounded-lg">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-slate-800">{vehicle.name}</p>
-                    <p className="text-sm text-slate-500">{vehicle.vehicleType} {vehicle.year && `• ${vehicle.year}`}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <p className="font-bold text-slate-800">${vehicle.value.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-end gap-1 mt-3">
-                  <button onClick={() => handleEdit(vehicle)} className="p-1 hover:bg-slate-200 rounded">
-                    <Edit2 className="w-4 h-4 text-slate-400" />
-                  </button>
-                  <button onClick={() => handleDelete(vehicle.id)} className="p-1 hover:bg-red-100 rounded">
-                    <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 text-sm font-medium text-slate-500">Vehicle</th>
+                  <th className="text-left py-2 text-sm font-medium text-slate-500">Type</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Year</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Value</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">% of Vehicles</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vehicleHoldings.map((vehicle) => {
+                  const vehicleTotal = vehicleHoldings.reduce((sum, h) => sum + h.value, 0);
+                  const percent = vehicleTotal > 0 ? ((vehicle.value / vehicleTotal) * 100).toFixed(1) : '0';
+                  return (
+                    <tr key={vehicle.id} className="border-b border-slate-100">
+                      <td className="py-3">
+                        <p className="font-medium text-slate-800">{vehicle.name}</p>
+                      </td>
+                      <td className="py-3 text-slate-600">{vehicle.vehicleType}</td>
+                      <td className="py-3 text-right text-slate-500">{vehicle.year || '-'}</td>
+                      <td className="py-3 text-right font-medium text-slate-800">${vehicle.value.toLocaleString()}</td>
+                      <td className="py-3 text-right text-slate-500">{percent}%</td>
+                      <td className="py-3 text-right">
+                        <button onClick={() => handleEdit(vehicle)} className="p-1 hover:bg-slate-100 rounded mr-1">
+                          <Edit2 className="w-4 h-4 text-slate-400" />
+                        </button>
+                        <button onClick={() => handleDelete(vehicle.id)} className="p-1 hover:bg-red-50 rounded">
+                          <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -889,31 +938,47 @@ const Portfolio = () => {
               + Add Account
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {cashHoldings.map((account) => (
-              <div key={account.id} className="p-4 bg-slate-50 rounded-lg">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-slate-800">{account.name}</p>
-                    <p className="text-sm text-slate-500">{account.institution}</p>
-                    {account.apy !== undefined && (
-                      <p className="text-xs text-green-600">{account.apy}% APY</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-slate-800">${account.value.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-end gap-1 mt-3">
-                  <button onClick={() => handleEdit(account)} className="p-1 hover:bg-slate-200 rounded">
-                    <Edit2 className="w-4 h-4 text-slate-400" />
-                  </button>
-                  <button onClick={() => handleDelete(account.id)} className="p-1 hover:bg-red-100 rounded">
-                    <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 text-sm font-medium text-slate-500">Account</th>
+                  <th className="text-left py-2 text-sm font-medium text-slate-500">Institution</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Currency</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">APY</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Value (AUD)</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">% of Cash</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cashHoldings.map((account) => {
+                  const cashTotal = cashHoldings.reduce((sum, h) => sum + h.value, 0);
+                  const percent = cashTotal > 0 ? ((account.value / cashTotal) * 100).toFixed(1) : '0';
+                  const cash = account as Cash;
+                  return (
+                    <tr key={account.id} className="border-b border-slate-100">
+                      <td className="py-3">
+                        <p className="font-medium text-slate-800">{account.name}</p>
+                      </td>
+                      <td className="py-3 text-slate-600">{account.institution}</td>
+                      <td className="py-3 text-right text-slate-500">{cash.currency || 'AUD'}</td>
+                      <td className="py-3 text-right text-slate-500">{account.apy !== undefined ? `${account.apy}%` : '-'}</td>
+                      <td className="py-3 text-right font-medium text-slate-800">${account.value.toLocaleString()}</td>
+                      <td className="py-3 text-right text-slate-500">{percent}%</td>
+                      <td className="py-3 text-right">
+                        <button onClick={() => handleEdit(account)} className="p-1 hover:bg-slate-100 rounded mr-1">
+                          <Edit2 className="w-4 h-4 text-slate-400" />
+                        </button>
+                        <button onClick={() => handleDelete(account.id)} className="p-1 hover:bg-red-50 rounded">
+                          <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -46,33 +46,33 @@ const budgetData = [
 ];
 
 const defaultHoldings: Holding[] = [
-  // Real Estate
+  // Real Estate - Updated values
   { id: 1, name: 'Southport QLD Property', value: 1100000, location: 'Australia', type: 'realEstate' },
-  { id: 2, name: 'Niseko Japan Property', value: 501435, location: 'Japan', type: 'realEstate' },
+  { id: 2, name: 'Niseko Japan Property', value: 400000, location: 'Japan', type: 'realEstate' },
   { id: 3, name: 'Ansons Bay TAS (143-145)', value: 470000, location: 'Australia', type: 'realEstate' },
   { id: 4, name: 'Ansons Bay TAS (18)', value: 420000, location: 'Australia', type: 'realEstate' },
-  // Cash - 2 Rabo + 1 Wise (confirmed by user)
-  { id: 5, name: 'Rabobank PremiumSaver', value: 380357, institution: 'Rabobank', type: 'cash', apy: 5.15 },
-  { id: 6, name: 'Rabobank High Interest', value: 150000, institution: 'Rabobank', type: 'cash', apy: 5.15 },
-  { id: 7, name: 'Wise JPY Account', value: 50000, institution: 'Wise', type: 'cash', apy: 0 },
-  // Crypto
-  { id: 8, symbol: 'BTC', name: 'Bitcoin', units: 2.81, value: 302509, type: 'crypto', avgBuyPrice: 45000 },
-  { id: 9, symbol: 'ETH', name: 'Ethereum', units: 64, value: 208631, type: 'crypto', avgBuyPrice: 1800 },
-  { id: 10, symbol: 'SOL', name: 'Solana', units: 270, value: 36894, type: 'crypto', avgBuyPrice: 85 },
-  { id: 11, symbol: 'XRP', name: 'Ripple', units: 2303, value: 4889, type: 'crypto', avgBuyPrice: 1.2 },
-  { id: 12, symbol: 'SUI', name: 'Sui', units: 901, value: 4713, type: 'crypto', avgBuyPrice: 3.5 },
+  // Cash - Updated from database (AUD values)
+  { id: 5, name: 'Rabobank PremiumSaver', value: 261822, institution: 'Rabobank', type: 'cash', apy: 5.50 },
+  { id: 6, name: 'Rabobank High Interest', value: 170650, institution: 'Rabobank', type: 'cash', apy: 5.50 },
+  { id: 7, name: 'Wise JPY Account', value: 147886, institution: 'Wise', type: 'cash', apy: 0 },
+  // Crypto - Updated values from database
+  { id: 8, symbol: 'BTC', name: 'Bitcoin', units: 2.81, value: 186637, type: 'crypto', avgBuyPrice: 45000 },
+  { id: 9, symbol: 'ETH', name: 'Ethereum', units: 64, value: 130943, type: 'crypto', avgBuyPrice: 1800 },
+  { id: 10, symbol: 'SOL', name: 'Solana', units: 270, value: 21257, type: 'crypto', avgBuyPrice: 85 },
+  { id: 11, symbol: 'XRP', name: 'Ripple', units: 2303, value: 3018, type: 'crypto', avgBuyPrice: 1.2 },
+  { id: 12, symbol: 'SUI', name: 'Sui', units: 901, value: 775, type: 'crypto', avgBuyPrice: 3.5 },
   // Vehicles
   { id: 13, name: 'Land Rover 2023 Defender', value: 100000, type: 'vehicle' },
   { id: 14, name: 'VW 2024 GTi Golf', value: 55000, type: 'vehicle' },
   { id: 15, name: 'Land Rover 2011 Defender', value: 20000, type: 'vehicle' },
   { id: 16, name: 'Triumph T120 2023', value: 17000, type: 'vehicle' },
   { id: 17, name: 'Trailer', value: 2500, type: 'vehicle' },
-  // Stocks
-  { id: 18, symbol: 'NVDA', name: 'NVIDIA', units: 9.56, value: 2375.95, type: 'stock', avgBuyPrice: 120 },
-  { id: 19, symbol: 'XLE', name: 'Energy ETF', units: 12.26, value: 1094.80, type: 'stock', avgBuyPrice: 75 },
-  { id: 20, symbol: 'AAPL', name: 'Apple', units: 1.18, value: 431.73, type: 'stock', avgBuyPrice: 180 },
-  { id: 21, symbol: 'GOOGL', name: 'Alphabet', units: 1.02, value: 416.92, type: 'stock', avgBuyPrice: 140 },
-  { id: 22, symbol: 'GPRO', name: 'GoPro', units: 7, value: 6.82, type: 'stock', avgBuyPrice: 8 },
+  // Stocks - Updated to match actual holdings (in AUD after conversion)
+  { id: 18, symbol: 'NVDA', name: 'NVIDIA', units: 22.11, value: 6022, type: 'stock', avgBuyPrice: 176.77 },
+  { id: 19, symbol: 'XLE', name: 'Energy ETF', units: 35.97, value: 3288, type: 'stock', avgBuyPrice: 62.55 },
+  { id: 20, symbol: 'AAPL', name: 'Apple', units: 1.18, value: 466, type: 'stock', avgBuyPrice: 300.00 },
+  { id: 21, symbol: 'GOOGL', name: 'Alphabet', units: 6.89, value: 3177, type: 'stock', avgBuyPrice: 290.65 },
+  { id: 22, symbol: 'GPRO', name: 'GoPro', units: 7, value: 8, type: 'stock', avgBuyPrice: 0.97 },
 ];
 
 const MetricCard = ({ title, value, change, changeType, icon: Icon, onRefresh, isLoading }: any) => {

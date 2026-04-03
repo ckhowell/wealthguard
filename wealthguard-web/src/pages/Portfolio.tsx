@@ -960,6 +960,7 @@ const Portfolio = () => {
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Currency</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">APY</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Value (AUD)</th>
+                  <th className="text-right py-2 text-sm font-medium text-slate-500">Monthly Interest</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">% of Cash</th>
                   <th className="text-right py-2 text-sm font-medium text-slate-500">Actions</th>
                 </tr>
@@ -969,6 +970,7 @@ const Portfolio = () => {
                   const cashTotal = cashHoldings.reduce((sum, h) => sum + h.value, 0);
                   const percent = cashTotal > 0 ? ((account.value / cashTotal) * 100).toFixed(1) : '0';
                   const cash = account as Cash;
+                  const monthlyInterest = account.apy ? (account.value * (account.apy / 100) / 12) : 0;
                   return (
                     <tr key={account.id} className="border-b border-slate-100">
                       <td className="py-3">
@@ -978,6 +980,7 @@ const Portfolio = () => {
                       <td className="py-3 text-right text-slate-500">{cash.currency || 'AUD'}</td>
                       <td className="py-3 text-right text-slate-500">{account.apy !== undefined ? `${account.apy}%` : '-'}</td>
                       <td className="py-3 text-right font-medium text-slate-800">${account.value.toLocaleString()}</td>
+                      <td className="py-3 text-right text-green-600 font-medium">${Math.round(monthlyInterest).toLocaleString()}</td>
                       <td className="py-3 text-right text-slate-500">{percent}%</td>
                       <td className="py-3 text-right">
                         <button onClick={() => handleEdit(account)} className="p-1 hover:bg-slate-100 rounded mr-1">

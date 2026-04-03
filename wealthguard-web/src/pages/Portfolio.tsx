@@ -251,7 +251,7 @@ const Portfolio = () => {
   const totals = {
     realEstate: realEstateHoldings.reduce((sum, h) => sum + h.value, 0),
     cash: cashHoldings.reduce((sum, h) => sum + h.value, 0),
-    crypto: cryptoHoldings.reduce((sum, h) => sum + h.value, 0),
+    crypto: cryptoHoldings.reduce((sum, h) => sum + h.value, 0) * USD_TO_AUD, // Convert to AUD
     vehicle: vehicleHoldings.reduce((sum, h) => sum + h.value, 0),
     stock: stockHoldings.reduce((sum, h) => sum + h.value, 0) * USD_TO_AUD, // Convert to AUD
   };

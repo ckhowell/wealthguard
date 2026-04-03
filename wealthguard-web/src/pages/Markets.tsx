@@ -10,8 +10,8 @@ import {
 } from 'lucide-react';
 import { usePersistentState } from '../hooks/usePersistentState';
 
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// API Configuration - Use relative paths for production
+const API_BASE_URL = '';  // Empty = relative to current domain
 
 interface StockQuote {
   symbol: string;

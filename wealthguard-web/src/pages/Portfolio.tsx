@@ -12,7 +12,7 @@ import ToastContainer from '../components/ToastContainer';
 import RiskAnalysis from '../components/RiskAnalysis';
 
 // USD to AUD conversion rate
-const USD_TO_AUD = 1.55;
+const USD_TO_AUD = 1.447;
 
 interface RealEstate {
   id: number;
@@ -136,15 +136,18 @@ const Portfolio = () => {
     fetchApiHoldings();
   }, []);
 
-  // Merge API holdings with local stocks (prioritize API data for stocks)
+  // Merge API holdings with local state (prioritize API data for stocks and crypto)
   const mergedHoldings = useMemo(() => {
     if (apiHoldings.length === 0) return holdings;
     
-    // Create map of API stock holdings
+    // Create map of API holdings by symbol
     const apiStockMap = new Map();
+    const apiCryptoMap = new Map();
     apiHoldings.forEach((h: any) => {
       if (h.asset_class === 'equity') {
         apiStockMap.set(h.symbol, h);
+      } else if (h.asset_class === 'crypto') {
+        apiCryptoMap.set(h.symbol, h);
       }
     });
     
@@ -157,6 +160,16 @@ const Portfolio = () => {
             ...h,
             units: apiData.shares || (h as Stock).units,
             value: (apiData.shares || 0) * (apiData.current_price || 0)
+          };
+        }
+      } else if (h.type === 'crypto') {
+        const apiData = apiCryptoMap.get((h as Crypto).symbol);
+        if (apiData) {
+          const currentValue = (apiData.shares || 0) * (apiData.current_price || 0);
+          return {
+            ...h,
+            units: apiData.shares || (h as Crypto).units,
+            value: currentValue
           };
         }
       }

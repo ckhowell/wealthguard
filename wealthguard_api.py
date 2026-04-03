@@ -20,6 +20,15 @@ from dotenv import load_dotenv
 # Load environment
 load_dotenv(Path(__file__).parent / '.env')
 
+# Import yfinance for live price fetching
+try:
+    import yfinance as yf
+    YFINANCE_AVAILABLE = True
+except ImportError:
+    YFINANCE_AVAILABLE = False
+    logger = logging.getLogger('wealthguard-api')
+    logger.warning("yfinance not available, market data will be mock")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('wealthguard-api')
@@ -55,6 +64,9 @@ class Holding(BaseModel):
     sector: Optional[str]
     geography: Optional[str]
     last_price_update: Optional[str]
+    value_aud: Optional[float] = None
+    value_original: Optional[float] = None
+    original_currency: Optional[str] = None
 
 class PriceHistory(BaseModel):
     symbol: str
@@ -96,7 +108,7 @@ def root():
 
 @app.get("/api/holdings", response_model=List[Holding])
 def get_holdings():
-    """Get all holdings with current prices"""
+    """Get all holdings with current prices and AUD values"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -107,7 +119,36 @@ def get_holdings():
             ORDER BY h.shares * h.current_price DESC
         """)
         rows = cursor.fetchall()
-        return [dict(row) for row in rows]
+        
+        holdings = []
+        for row in rows:
+            holding = dict(row)
+            shares = holding.get('shares', 0) or 0
+            price = holding.get('current_price', 0) or 0
+            
+            # Calculate value in original currency
+            asset_class = holding.get('asset_class', '')
+            if asset_class == 'crypto':
+                original_currency = 'USD'
+                fx_rate = get_fx_rate('USD', 'AUD')
+            elif asset_class == 'equity':
+                # US stocks are USD, assume others are AUD for now
+                original_currency = 'USD'
+                fx_rate = get_fx_rate('USD', 'AUD')
+            else:
+                # Real estate, cash, etc. assumed AUD
+                original_currency = 'AUD'
+                fx_rate = 1.0
+            
+            value_original = shares * price
+            value_aud = value_original * fx_rate
+            
+            holding['value_original'] = value_original
+            holding['value_aud'] = value_aud
+            holding['original_currency'] = original_currency
+            holdings.append(holding)
+        
+        return holdings
 
 
 @app.get("/api/holdings/{symbol}")
@@ -211,6 +252,8 @@ ASX_STOCKS = [
     {"symbol": "WOW.AX", "name": "Woolworths", "sector": "Consumer"},
     {"symbol": "TLS.AX", "name": "Telstra", "sector": "Telecom"},
     {"symbol": "CSL.AX", "name": "CSL Limited", "sector": "Healthcare"},
+    {"symbol": "TCL.AX", "name": "Transurban Group", "sector": "Infrastructure"},
+    {"symbol": "VAS.AX", "name": "Vanguard Australian Shares ETF", "sector": "ETF"},
 ]
 
 CN_STOCKS = [
@@ -231,8 +274,8 @@ CRYPTO_SYMBOLS = [
 
 # FX Rate configuration - USD to AUD
 FX_RATES = {
-    'USD/AUD': 1.55,
-    'AUD/USD': 0.645,
+    'USD/AUD': 1.447,
+    'AUD/USD': 0.691,
 }
 
 def get_fx_rate(from_curr: str, to_curr: str) -> float:
@@ -244,6 +287,42 @@ def get_fx_rate(from_curr: str, to_curr: str) -> float:
     if inverse in FX_RATES:
         return 1 / FX_RATES[inverse]
     return 1.0
+
+
+def fetch_live_price(symbol: str) -> Optional[Dict]:
+    """Fetch live price using yfinance"""
+    if not YFINANCE_AVAILABLE:
+        return None
+    
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        
+        if not info:
+            return None
+        
+        price = info.get('regularMarketPrice') or info.get('previousClose')
+        if not price:
+            return None
+        
+        # Get change percent if available
+        change_pct = info.get('regularMarketChangePercent')
+        if change_pct is None:
+            prev_close = info.get('previousClose')
+            if prev_close and prev_close > 0:
+                change_pct = ((price - prev_close) / prev_close) * 100
+            else:
+                change_pct = 0
+        
+        return {
+            'price': price,
+            'change_percent': change_pct,
+            'currency': info.get('currency', 'USD'),
+            'name': info.get('shortName') or info.get('longName')
+        }
+    except Exception as e:
+        logger.debug(f"yfinance failed for {symbol}: {e}")
+        return None
 
 
 @app.get("/api/markets/{region}")
@@ -285,20 +364,35 @@ def get_market_data(region: str):
         
         price_map = {row['symbol']: dict(row) for row in cursor.fetchall()}
     
-    # Build response with fallback to mock data if no real data
+    # Build response with fallback to live fetch, then mock data
     result = []
     for stock in stocks:
         symbol = stock["symbol"]
         price_info = price_map.get(symbol, {})
         
         price = price_info.get('price')
+        change_pct = None
+        source = "live"  # Database prices are live (regularly updated)
+        fetched_name = None
+        
         if price is None:
-            # Fallback: generate reasonable mock price
-            base = 100 + random.random() * 400
+            # Try to fetch live price
+            live_data = fetch_live_price(symbol)
+            if live_data:
+                price = live_data['price']
+                change_pct = live_data['change_percent']
+                fetched_name = live_data.get('name')
+                source = "live"
+                logger.info(f"Fetched live price for {symbol}: ${price}")
+            else:
+                # Fallback: generate reasonable mock price
+                base = 100 + random.random() * 400
+                change_pct = (random.random() - 0.5) * 4
+                price = base
+                source = "mock"
+        
+        if change_pct is None:
             change_pct = (random.random() - 0.5) * 4
-            price = base
-        else:
-            change_pct = (random.random() - 0.5) * 4  # Would need historical data for real change
         
         change = price * (change_pct / 100)
         
@@ -313,7 +407,7 @@ def get_market_data(region: str):
         
         result.append({
             "symbol": symbol,
-            "name": stock["name"],
+            "name": fetched_name or stock["name"],
             "price": round(price, 2),
             "price_aud": aud_price,
             "change": round(change, 2),
@@ -322,7 +416,7 @@ def get_market_data(region: str):
             "sector": stock["sector"],
             "market_cap": None,
             "volume": None,
-            "source": "live" if price_info else "mock"
+            "source": source
         })
     
     return {
@@ -489,6 +583,62 @@ def get_symbol_news(symbol: str):
             "error": str(e),
             "articles": []
         }
+
+
+# Intelligence endpoints
+@app.get("/api/intelligence/daily")
+def get_daily_intelligence():
+    """Get daily intelligence briefing"""
+    try:
+        from intelligence_engine import IntelligenceEngine
+        engine = IntelligenceEngine()
+        return engine.get_daily_briefing()
+    except Exception as e:
+        logger.error(f"Intelligence error: {e}")
+        return {"error": str(e), "date": datetime.now().isoformat()}
+
+@app.get("/api/intelligence/signals")
+def get_portfolio_signals():
+    """Get investment signals based on portfolio and market data"""
+    try:
+        from intelligence_engine import IntelligenceEngine
+        from wealthguard_data_sync import DatabaseSync
+        
+        # Get portfolio holdings
+        db = DatabaseSync(DB_PATH)
+        holdings = db.get_all_holdings()
+        
+        # Generate signals
+        engine = IntelligenceEngine()
+        signals = engine.generate_portfolio_signals(holdings)
+        
+        return {
+            "signals": signals,
+            "generated_at": datetime.now().isoformat(),
+            "count": len(signals)
+        }
+    except Exception as e:
+        logger.error(f"Signals error: {e}")
+        return {"signals": [], "error": str(e)}
+
+@app.get("/api/intelligence/sentiment/{ticker}")
+def get_ticker_sentiment(ticker: str):
+    """Get sentiment analysis for specific ticker"""
+    try:
+        from intelligence_engine import SwarmDataAggregator
+        swarm = SwarmDataAggregator()
+        
+        sentiment = swarm.get_stocktwits_sentiment(ticker.upper())
+        fear_greed = swarm.get_fear_greed_index()
+        
+        return {
+            "ticker": ticker.upper(),
+            "sentiment": sentiment,
+            "market_sentiment": fear_greed
+        }
+    except Exception as e:
+        logger.error(f"Sentiment error: {e}")
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":

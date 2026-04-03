@@ -21,7 +21,7 @@ export default defineConfig({
     },
   },
   define: {
-    // Make API URL available to client
-    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:8000'),
+    // Use relative paths for production - empty string means same-origin
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || ''),
   },
 })

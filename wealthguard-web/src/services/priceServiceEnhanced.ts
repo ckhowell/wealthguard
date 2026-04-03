@@ -155,8 +155,8 @@ export async function fetchAllLivePrices(
 
 // Currency conversion rates (in production, fetch from an API)
 export const FX_RATES: Record<string, number> = {
-  'USD/AUD': 1.55,
-  'AUD/USD': 0.645,
+  'USD/AUD': 1.447,
+  'AUD/USD': 0.691,
   'JPY/AUD': 0.0091,
   'AUD/JPY': 109.89,
 };

@@ -167,7 +167,7 @@ export const fetchAllPrices = async (
 };
 
 // Convert USD to AUD (using a simple rate - in production, fetch live FX rate)
-export const usdToAud = (usdAmount: number, rate: number = 1.55): number => {
+export const usdToAud = (usdAmount: number, rate: number = 1.447): number => {
   return usdAmount * rate;
 };
 

@@ -16,7 +16,7 @@ DB_PATH = '/root/.openclaw/workspace/wealthguard.db'
 # FX Rate cache
 FX_RATES = {
     'JPY': 0.009117,  # JPY to AUD
-    'USD': 1.55,      # USD to AUD
+    'USD': 1.447,     # USD to AUD (updated 2026-04-03)
 }
 
 # Manual price overrides (for assets that yfinance gets wrong)

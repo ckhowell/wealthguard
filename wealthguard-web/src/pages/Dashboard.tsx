@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePersistentState } from '../hooks/usePersistentState';
-import { fetchAllPrices, usdToAud, formatCurrency } from '../services/priceService';
+import { usdToAud, formatCurrency } from '../services/priceService';
+import { fetchCryptoPrices } from '../services/priceService';
 import type { PriceData } from '../services/priceService';
 import CurrencyConverter from '../components/CurrencyConverter';
 import NetWorthTracker from '../components/NetWorthTracker';
@@ -56,10 +57,10 @@ const defaultHoldings: Holding[] = [
   { id: 6, name: 'Rabobank High Interest', value: 170650, institution: 'Rabobank', type: 'cash', apy: 5.50 },
   { id: 7, name: 'Wise JPY Account', value: 147886, institution: 'Wise', type: 'cash', apy: 0 },
   // Crypto - Updated values from database
-  { id: 8, symbol: 'BTC', name: 'Bitcoin', units: 2.81, value: 186637, type: 'crypto', avgBuyPrice: 45000 },
-  { id: 9, symbol: 'ETH', name: 'Ethereum', units: 64, value: 130943, type: 'crypto', avgBuyPrice: 1800 },
-  { id: 10, symbol: 'SOL', name: 'Solana', units: 270, value: 21257, type: 'crypto', avgBuyPrice: 85 },
-  { id: 11, symbol: 'XRP', name: 'Ripple', units: 2303, value: 3018, type: 'crypto', avgBuyPrice: 1.2 },
+  { id: 8, symbol: 'BTC', name: 'Bitcoin', units: 2.81, value: 188126, type: 'crypto', avgBuyPrice: 45000 },
+  { id: 9, symbol: 'ETH', name: 'Ethereum', units: 64, value: 131640, type: 'crypto', avgBuyPrice: 1800 },
+  { id: 10, symbol: 'SOL', name: 'Solana', units: 270, value: 21330, type: 'crypto', avgBuyPrice: 85 },
+  { id: 11, symbol: 'XRP', name: 'Ripple', units: 2303, value: 3035, type: 'crypto', avgBuyPrice: 1.2 },
   { id: 12, symbol: 'SUI', name: 'Sui', units: 901, value: 775, type: 'crypto', avgBuyPrice: 3.5 },
   // Vehicles
   { id: 13, name: 'Land Rover 2023 Defender', value: 100000, type: 'vehicle' },
@@ -126,7 +127,7 @@ const Dashboard = () => {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
   const [isLoadingPrices, setIsLoadingPrices] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
-  const [usdAudRate] = useState(1.55); // Default rate
+  const [usdAudRate] = useState(1.447); // Updated FX rate
 
   // Extract symbols from holdings
   const cryptoSymbols = holdings
@@ -137,20 +138,60 @@ const Dashboard = () => {
     .filter(h => h.type === 'stock' && h.symbol)
     .map(h => h.symbol!);
 
-  // Fetch live prices
+  // Fetch live prices from backend API
   const fetchLivePrices = useCallback(async () => {
     setIsLoadingPrices(true);
     setPriceError(null);
     
     try {
-      const freshPrices = await fetchAllPrices(cryptoSymbols, stockSymbols);
+      // Fetch from backend API which has live prices via yfinance
+      const response = await fetch('/api/holdings');
+      if (!response.ok) throw new Error('API error');
+      
+      const apiHoldings = await response.json();
+      const priceMap: Record<string, any> = {};
+      
+      // Build price map from API data
+      apiHoldings.forEach((h: any) => {
+        if (h.symbol && h.current_price) {
+          priceMap[h.symbol.toUpperCase()] = {
+            symbol: h.symbol.toUpperCase(),
+            price: h.current_price,
+            currency: h.asset_class === 'crypto' ? 'USD' : 'USD',
+            lastUpdated: h.last_price_update || new Date().toISOString(),
+          };
+        }
+      });
+      
+      // Also fetch crypto prices from CoinGecko for 24h change
+      const cryptoPrices = await fetchCryptoPrices(cryptoSymbols);
+      
+      // Merge API prices with crypto 24h change data
+      const freshPrices: Record<string, PriceData> = {};
+      
+      [...cryptoSymbols, ...stockSymbols].forEach(symbol => {
+        const upperSymbol = symbol.toUpperCase();
+        const apiPrice = priceMap[upperSymbol];
+        const cryptoData = cryptoPrices[upperSymbol];
+        
+        if (apiPrice) {
+          freshPrices[upperSymbol] = {
+            symbol: upperSymbol,
+            price: apiPrice.price,
+            currency: apiPrice.currency,
+            change24h: cryptoData?.change24h,
+            lastUpdated: apiPrice.lastUpdated,
+          };
+        }
+      });
+      
       setPrices(freshPrices);
       setLastUpdated(new Date());
       
       // Update holdings with new prices
       const updatedHoldings = holdings.map(h => {
-        if ((h.type === 'stock' || h.type === 'crypto') && h.symbol && freshPrices[h.symbol]) {
-          const priceData = freshPrices[h.symbol];
+        if ((h.type === 'stock' || h.type === 'crypto') && h.symbol && freshPrices[h.symbol.toUpperCase()]) {
+          const priceData = freshPrices[h.symbol.toUpperCase()];
           const priceUsd = priceData.price;
           
           // Convert to AUD for crypto (stocks are already displayed as-is for now)

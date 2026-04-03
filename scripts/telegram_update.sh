@@ -29,10 +29,10 @@ fi
 # Get Brisbane time
 BRISBANE_TIME=$(TZ=Australia/Brisbane date '+%I:%M %p')
 
-# Get current Cloudflare tunnel URL (from running process)
-CLOUDFLARE_URL=$(pgrep -a cloudflared 2>/dev/null | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | head -1)
+# Get current Cloudflare tunnel URL (from running process or log)
+CLOUDFLARE_URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/cloudflare.log 2>/dev/null | tail -1)
 if [ -z "$CLOUDFLARE_URL" ]; then
-    CLOUDFLARE_URL="https://mortgages-sufficiently-hist-homework.trycloudflare.com"
+    CLOUDFLARE_URL="https://spears-finance-assumes-meaning.trycloudflare.com"
 fi
 
 # Build message

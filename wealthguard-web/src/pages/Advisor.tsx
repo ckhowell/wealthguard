@@ -69,6 +69,94 @@ interface DividendStock {
   value: number;
 }
 
+// US Stock Opportunities
+const US_OPPORTUNITIES: Omit<Opportunity, 'price' | 'priceAud' | 'change24h'>[] = [
+  {
+    id: 'us1',
+    symbol: 'NVDA',
+    name: 'NVIDIA Corporation',
+    type: 'stock',
+    exchange: 'NASDAQ',
+    yield: 0.03,
+    thesis: 'AI infrastructure leader. Data center revenue growing 400%+ YoY. CUDA ecosystem creates massive moat. Premium valuation but justified by growth.',
+    risks: ['China export restrictions', 'Competition from AMD/Intel', 'AI bubble concerns', 'High valuation (60x PE)'],
+    recommendation: 'hold',
+    category: 'growth',
+    tags: ['ai', 'semiconductor', 'data-center', 'tech'],
+    conviction: 8
+  },
+  {
+    id: 'us2',
+    symbol: 'AAPL',
+    name: 'Apple Inc',
+    type: 'stock',
+    exchange: 'NASDAQ',
+    yield: 0.5,
+    thesis: 'Services revenue now 25% of total with 70% gross margins. iPhone installed base of 2.2B devices. Vision Pro early but AR bet for next decade.',
+    risks: ['China dependency (20% revenue)', 'iPhone upgrade cycle slowing', 'Regulatory pressure (App Store)', 'No new product categories'],
+    recommendation: 'hold',
+    category: 'defensive',
+    tags: ['tech', 'consumer', 'services', 'dividend'],
+    conviction: 7
+  },
+  {
+    id: 'us3',
+    symbol: 'GOOGL',
+    name: 'Alphabet Inc',
+    type: 'stock',
+    exchange: 'NASDAQ',
+    yield: 0.45,
+    thesis: 'Search monopoly + YouTube + Cloud. AI integration across products (Gemini). Trading at discount to tech peers (25x PE vs 35x avg).',
+    risks: ['AI disrupting search', 'Antitrust breakup risk', 'YouTube competition from TikTok', 'Cloud #3 behind AWS/Azure'],
+    recommendation: 'buy',
+    category: 'growth',
+    tags: ['tech', 'ai', 'search', 'cloud'],
+    conviction: 8
+  },
+  {
+    id: 'us4',
+    symbol: 'XLE',
+    name: 'Energy Select Sector SPDR',
+    type: 'etf',
+    exchange: 'NYSE',
+    yield: 3.2,
+    thesis: 'Diversified exposure to US energy sector. Exxon + Chevron = 40% of fund. Inflation hedge, energy security theme.',
+    risks: ['Oil price volatility', 'ESG divestment pressure', 'Energy transition risk', 'Concentrated in 2 stocks'],
+    recommendation: 'buy',
+    category: 'income',
+    tags: ['energy', 'etf', 'oil', 'dividend'],
+    conviction: 6
+  },
+  {
+    id: 'us5',
+    symbol: 'VTI',
+    name: 'Vanguard Total Stock Market',
+    type: 'etf',
+    exchange: 'NYSE',
+    yield: 1.4,
+    thesis: 'Total US market exposure (4,000+ stocks). 0.03% expense ratio. Set-and-forget core holding for US equity allocation.',
+    risks: ['US market concentration', 'No international exposure', 'Interest rate sensitivity'],
+    recommendation: 'buy',
+    category: 'growth',
+    tags: ['etf', 'diversified', 'passive', 'us-market'],
+    conviction: 9
+  },
+  {
+    id: 'us6',
+    symbol: 'MSFT',
+    name: 'Microsoft Corporation',
+    type: 'stock',
+    exchange: 'NASDAQ',
+    yield: 0.7,
+    thesis: 'Cloud leader (Azure 25% growth), Office 365 subscription model, AI copilot monetization. Most defensive megacap tech.',
+    risks: ['Cloud growth decelerating', 'AI capex bubble', 'Regulatory scrutiny', 'Valuation (35x PE)'],
+    recommendation: 'buy',
+    category: 'defensive',
+    tags: ['tech', 'cloud', 'ai', 'enterprise'],
+    conviction: 9
+  }
+];
+
 const ASX_OPPORTUNITIES: Omit<Opportunity, 'price' | 'priceAud' | 'change24h'>[] = [
   {
     id: '1',
@@ -218,11 +306,11 @@ const OpportunityCard = ({ opp }: { opp: Opportunity }) => {
           </div>
           <div className="text-right">
             <p className="text-xl font-bold text-slate-800">
-              {opp.price > 0 ? `A$${opp.price.toFixed(2)}` : 'Loading...'}
+              {opp.price > 0 ? `${opp.exchange === 'ASX' ? 'A' : 'US'}$${Math.round(opp.price).toLocaleString()}` : 'Loading...'}
             </p>
             {opp.change24h !== undefined && (
               <p className={`text-xs ${opp.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {opp.change24h >= 0 ? '+' : ''}{opp.change24h.toFixed(2)}%
+                {opp.change24h >= 0 ? '+' : ''}{opp.change24h.toFixed(1)}%
               </p>
             )}
             <p className="text-xs text-slate-500">{opp.exchange}</p>
@@ -475,7 +563,7 @@ const RebalancingCalculator = ({
                   </div>
                   {trade.action !== 'hold' && (
                     <div className="mt-1 font-medium">
-                      {trade.action === 'buy' ? '+' : '-'}${Math.abs(trade.difference).toLocaleString()}
+                      {trade.action === 'buy' ? '+' : '-'}${Math.abs(Math.round(trade.difference)).toLocaleString()}
                     </div>
                   )}
                 </div>
@@ -493,19 +581,19 @@ const RebalancingCalculator = ({
               {rebalancingTrades.find(t => t.assetClass === 'equity' && t.action === 'buy') && (
                 <li className="flex justify-between">
                   <span>Buy VAS.AX ETF</span>
-                  <span className="font-medium">${Math.min(rebalancingTrades.find(t => t.assetClass === 'equity')?.difference || 0, 50000).toLocaleString()}</span>
+                  <span className="font-medium">${Math.min(Math.round(rebalancingTrades.find(t => t.assetClass === 'equity')?.difference || 0), 50000).toLocaleString()}</span>
                 </li>
               )}
               {rebalancingTrades.find(t => t.assetClass === 'equity' && t.action === 'buy') && (
                 <li className="flex justify-between">
                   <span>Buy ANZ.AX</span>
-                  <span className="font-medium">${Math.min((rebalancingTrades.find(t => t.assetClass === 'equity')?.difference || 0) * 0.3, 30000).toLocaleString()}</span>
+                  <span className="font-medium">${Math.min(Math.round((rebalancingTrades.find(t => t.assetClass === 'equity')?.difference || 0) * 0.3), 30000).toLocaleString()}</span>
                 </li>
               )}
               {rebalancingTrades.find(t => t.assetClass === 'equity' && t.action === 'buy') && (
                 <li className="flex justify-between">
                   <span>Buy RIO.AX</span>
-                  <span className="font-medium">${Math.min((rebalancingTrades.find(t => t.assetClass === 'equity')?.difference || 0) * 0.3, 30000).toLocaleString()}</span>
+                  <span className="font-medium">${Math.min(Math.round((rebalancingTrades.find(t => t.assetClass === 'equity')?.difference || 0) * 0.3), 30000).toLocaleString()}</span>
                 </li>
               )}
             </ul>
@@ -596,12 +684,12 @@ const DividendProjector = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
               <p className="text-xs text-purple-600 font-medium uppercase tracking-wide">Current Annual</p>
-              <p className="text-2xl font-bold text-purple-900">${projections.currentAnnual.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-purple-900">${Math.round(projections.currentAnnual).toLocaleString()}</p>
               <p className="text-xs text-purple-700">${Math.round(projections.currentMonthly).toLocaleString()}/month</p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
               <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Projected Annual</p>
-              <p className="text-2xl font-bold text-green-900">${projections.projectedAnnual.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-900">${Math.round(projections.projectedAnnual).toLocaleString()}</p>
               <p className="text-xs text-green-700">${Math.round(projections.projectedMonthly).toLocaleString()}/month</p>
             </div>
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -883,7 +971,7 @@ const DCASchedule = ({
               />
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Annual: ${(monthlyAmount * 12).toLocaleString()}
+              Annual: ${Math.round(monthlyAmount * 12).toLocaleString()}
             </p>
           </div>
 
@@ -1028,8 +1116,8 @@ const DCASchedule = ({
                         {trade.symbol.replace('.AX', '')}
                       </span>
                     </td>
-                    <td className="py-2 text-right font-medium text-slate-800">${trade.amount.toLocaleString()}</td>
-                    <td className="py-2 text-right text-slate-600">${trade.cumulative.toLocaleString()}</td>
+                    <td className="py-2 text-right font-medium text-slate-800">${Math.round(trade.amount).toLocaleString()}</td>
+                    <td className="py-2 text-right text-slate-600">${Math.round(trade.cumulative).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1086,7 +1174,7 @@ const Advisor = () => {
         severity: 'high',
         title: 'Real Estate Concentration',
         message: `${rePct.toFixed(1)}% of net worth ($${(realEstateValue/1000000).toFixed(2)}M) is in real estate. This creates liquidity risk.`,
-        suggestion: `Deploy $${Math.min(cashValue * 0.5, 300000).toLocaleString()} from cash into ASX income stocks`,
+        suggestion: `Deploy $${Math.min(Math.round(cashValue * 0.5), 300000).toLocaleString()} from cash into ASX income stocks`,
         actionType: 'diversify'
       });
     }
@@ -1098,7 +1186,7 @@ const Advisor = () => {
         id: 'sui-risk',
         severity: 'high',
         title: 'SUI Tokenomics Risk',
-        message: `SUI has 55% annual inflation and is down 82% from ATH. Position: ${suiHolding.shares} tokens (~$${suiHolding.value_aud.toLocaleString()}).`,
+        message: `SUI has 55% annual inflation and is down 82% from ATH. Position: ${suiHolding.shares} tokens (~$${Math.round(suiHolding.value_aud).toLocaleString()}).`,
         suggestion: 'Consider exiting SUI and consolidating to BTC/ETH',
         actionType: 'exit'
       });
@@ -1148,20 +1236,24 @@ const Advisor = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [portfolioRes, marketRes] = await Promise.all([
+      const [portfolioRes, marketAURes, marketUSRes] = await Promise.all([
         fetch('/api/holdings'),
-        fetch('/api/markets/AU')
+        fetch('/api/markets/AU'),
+        fetch('/api/markets/US')
       ]);
       
       const holdingsData: PortfolioHolding[] = await portfolioRes.json();
       const calculatedTotal = holdingsData.reduce((sum, h) => sum + (h.value_aud || 0), 0);
       
-      const marketData: { quotes?: Array<{ symbol: string; price: number; change_percent?: number }> } = await marketRes.json();
-      const priceMap = new Map((marketData.quotes || []).map((q) => [q.symbol, q]));
+      const marketAUData: { quotes?: Array<{ symbol: string; price: number; change_percent?: number }> } = await marketAURes.json();
+      const marketUSData: { quotes?: Array<{ symbol: string; price: number; change_percent?: number }> } = await marketUSRes.json();
       
-      // Enrich opportunities with live prices
-      const enrichedOpps = ASX_OPPORTUNITIES.map(opp => {
-        const marketPrice = priceMap.get(opp.symbol);
+      const auPriceMap = new Map((marketAUData.quotes || []).map((q) => [q.symbol, q]));
+      const usPriceMap = new Map((marketUSData.quotes || []).map((q) => [q.symbol, q]));
+      
+      // Enrich ASX opportunities with live prices
+      const enrichedASXOpps = ASX_OPPORTUNITIES.map(opp => {
+        const marketPrice = auPriceMap.get(opp.symbol);
         return {
           ...opp,
           price: marketPrice?.price || 0,
@@ -1170,14 +1262,26 @@ const Advisor = () => {
         };
       });
       
+      // Enrich US opportunities with live prices (convert to AUD)
+      const enrichedUSOpps = US_OPPORTUNITIES.map(opp => {
+        const marketPrice = usPriceMap.get(opp.symbol);
+        const usdPrice = marketPrice?.price || 0;
+        return {
+          ...opp,
+          price: usdPrice,
+          priceAud: usdPrice * 1.447, // Convert to AUD
+          change24h: marketPrice?.change_percent
+        };
+      });
+      
       setHoldings(holdingsData);
       setTotalValue(calculatedTotal);
-      setOpportunities(enrichedOpps);
+      setOpportunities([...enrichedASXOpps, ...enrichedUSOpps]);
       setPortfolioWarnings(generateWarnings(holdingsData, calculatedTotal));
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to fetch advisor data:', error);
-      setOpportunities(ASX_OPPORTUNITIES.map(opp => ({ ...opp, price: 0, priceAud: 0, change24h: undefined })));
+      setOpportunities([...ASX_OPPORTUNITIES, ...US_OPPORTUNITIES].map(opp => ({ ...opp, price: 0, priceAud: 0, change24h: undefined })));
     } finally {
       setIsLoading(false);
     }

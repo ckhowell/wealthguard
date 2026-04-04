@@ -296,7 +296,7 @@ const Dashboard = () => {
         />
         <MetricCard
           title="Cash Savings"
-          value={`$${(totals.cash).toLocaleString()}`}
+          value={`$${Math.round(totals.cash).toLocaleString()}`}
           change={`${bestApy.toFixed(2)}% best APY`}
           changeType="positive"
           icon={Wallet}

@@ -870,7 +870,7 @@ const Portfolio = () => {
                       </td>
                       <td className="py-3 text-slate-600">{property.location}</td>
                       <td className="py-3 text-right text-slate-500">{property.purchaseDate || '-'}</td>
-                      <td className="py-3 text-right font-medium text-slate-800">${property.value.toLocaleString()}</td>
+                      <td className="py-3 text-right font-medium text-slate-800">${Math.round(property.value).toLocaleString()}</td>
                       <td className="py-3 text-right text-slate-500">{percent}%</td>
                       <td className="py-3 text-right">
                         <button onClick={() => handleEdit(property)} className="p-1 hover:bg-slate-100 rounded mr-1">
@@ -922,7 +922,7 @@ const Portfolio = () => {
                       </td>
                       <td className="py-3 text-slate-600">{vehicle.vehicleType}</td>
                       <td className="py-3 text-right text-slate-500">{vehicle.year || '-'}</td>
-                      <td className="py-3 text-right font-medium text-slate-800">${vehicle.value.toLocaleString()}</td>
+                      <td className="py-3 text-right font-medium text-slate-800">${Math.round(vehicle.value).toLocaleString()}</td>
                       <td className="py-3 text-right text-slate-500">{percent}%</td>
                       <td className="py-3 text-right">
                         <button onClick={() => handleEdit(vehicle)} className="p-1 hover:bg-slate-100 rounded mr-1">
@@ -979,7 +979,7 @@ const Portfolio = () => {
                       <td className="py-3 text-slate-600">{account.institution}</td>
                       <td className="py-3 text-right text-slate-500">{cash.currency || 'AUD'}</td>
                       <td className="py-3 text-right text-slate-500">{account.apy !== undefined ? `${account.apy}%` : '-'}</td>
-                      <td className="py-3 text-right font-medium text-slate-800">${account.value.toLocaleString()}</td>
+                      <td className="py-3 text-right font-medium text-slate-800">${Math.round(account.value).toLocaleString()}</td>
                       <td className="py-3 text-right text-green-600 font-medium">${Math.round(monthlyInterest).toLocaleString()}</td>
                       <td className="py-3 text-right text-slate-500">{percent}%</td>
                       <td className="py-3 text-right">

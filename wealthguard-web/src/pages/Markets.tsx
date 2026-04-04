@@ -57,7 +57,10 @@ const MultiMarketPage = () => {
   const [sectorFilter, setSectorFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'marketCap' | 'yield'>('change');
   
-  const [watchlist, setWatchlist] = usePersistentState<string[]>('multimarket-watchlist', []);
+  const [watchlist, setWatchlist] = usePersistentState<string[]>('multimarket-watchlist', [
+    'US:VST', 'US:AVGO', 'US:TMO', 'US:LLY', 'US:GLD', 
+    'US:CI', 'US:DVN', 'US:GD', 'US:BAH'
+  ]);
   const [selectedStock, setSelectedStock] = useState<StockQuote | null>(null);
   const [intradayData, setIntradayData] = useState<any[]>([]);
 

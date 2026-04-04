@@ -59,7 +59,7 @@ const MultiMarketPage = () => {
   
   const [watchlist, setWatchlist] = usePersistentState<string[]>('multimarket-watchlist', [
     'US:VST', 'US:AVGO', 'US:TMO', 'US:LLY', 'US:GLD', 
-    'US:CI', 'US:DVN', 'US:GD', 'US:BAH'
+    'US:CI', 'US:OKTA', 'US:DVN', 'US:GD', 'US:BAH'
   ]);
   const [selectedStock, setSelectedStock] = useState<StockQuote | null>(null);
   const [intradayData, setIntradayData] = useState<any[]>([]);

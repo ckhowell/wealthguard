@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+/* WattVision typography — Inter (body) + Space Grotesk (display headings) +
+   Geist Mono (numerals / eyebrows — mandate per CLAUDE.md, untouched). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&family=Geist+Mono:wght@100..900&display=swap");
+
+/* Tailwind v4: enable `dark:` variants via a `.dark` class on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+
+  /* --- WATTVISION PALETTE — LIGHT MODE ------------------------------------
+     Near-white surfaces, same cyan/lime/red semantic accents as dark mode so
+     the charts and chips are legible in both themes. */
+
+  --ink-50:  #fafafa;
+  --ink-100: #f4f4f5;
+  --ink-200: #e4e4e7;
+  --ink-300: #d4d4d8;
+  --ink-400: #a1a1aa;
+  --ink-500: #71717a;
+  --ink-600: #52525b;
+  --ink-700: #3f3f46;
+  --ink-800: #27272a;
+  --ink-900: #18181b;
+
+  --bg: var(--ink-50);
+  --surface: #ffffff;
+  --surface-muted: var(--ink-100);
+  --surface-hover: var(--ink-100);
+  --text: var(--ink-900);
+  --text-muted: var(--ink-500);
+  --border: var(--ink-200);
+  --border-strong: var(--ink-300);
+
+  /* WattVision accent — #00E5FF cyan neon */
+  --accent: #06b6d4;                     /* cyan-500, slightly tamed for light */
+  --accent-hover: #0891b2;                /* cyan-600 */
+  --accent-soft: #ecfeff;                 /* cyan-50 */
+  --accent-soft-border: #a5f3fc;          /* cyan-200 */
+
+  /* Semantic */
+  --positive: #16a34a;                    /* green-600; matches #32D74B lime */
+  --positive-soft: #dcfce7;
+  --negative: #dc2626;                    /* red-600; matches #FF453A */
+  --negative-soft: #fee2e2;
+
+  /* Dashboard cockpit hero strip — deeper surface for signature "cockpit" feel.
+     Light mode: warm stone with cyan tint.  Dark mode overrides below. */
+  --surface-cockpit: #0e1016;             /* used in dark; light overrides below */
+  --surface-cockpit-text: #f5f5f4;
+  --surface-cockpit-text-muted: #a8a29e;
+  --cockpit-gradient: linear-gradient(135deg, rgba(0,229,255,0.04) 0%, transparent 60%);
+}
+
+:root:not(.dark) {
+  /* Light-mode cockpit: deep slate-navy that contrasts against the stone-50 page.
+     Gives the Dashboard's survival block a visible hierarchy shift in both themes. */
+  --surface-cockpit: #0b1220;
+  --surface-cockpit-text: #f5f5f4;
+  --surface-cockpit-text-muted: #cbd5e1;
+  --cockpit-gradient: linear-gradient(135deg, rgba(0,229,255,0.08) 0%, transparent 55%);
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --ink-50:  #fafafa;
+  --ink-100: #f4f4f5;
+  --ink-200: #e4e4e7;
+  --ink-300: #d4d4d8;
+  --ink-400: #a1a1aa;
+  --ink-500: #71717a;
+  --ink-600: #52525b;
+  --ink-700: #3f3f46;
+  --ink-800: #27272a;
+  --ink-900: #18181b;
+
+  /* WattVision dark-mode surfaces */
+  --bg: #121212;
+  --surface: #1E1E1E;
+  --surface-muted: #252525;
+  --surface-hover: #252525;
+  --text: #FFFFFF;
+  --text-muted: #98989D;
+  --border: #2C2C2E;
+  --border-strong: #3a3a3c;
+
+  --accent: #00E5FF;                      /* WattVision neon cyan */
+  --accent-hover: #22d3ee;                /* cyan-400 */
+  --accent-soft: rgba(0, 229, 255, 0.12);
+  --accent-soft-border: rgba(0, 229, 255, 0.28);
+
+  --positive: #32D74B;                    /* WattVision lime */
+  --positive-soft: rgba(50, 215, 75, 0.14);
+  --negative: #FF453A;                    /* WattVision alert red */
+  --negative-soft: #3A1C1C;
+
+  /* Dashboard cockpit hero — deeper ink than the normal dark surface.
+     Adds a barely-there cyan gradient per WattVision accent. */
+  --surface-cockpit: #0a0e14;
+  --surface-cockpit-text: #f5f5f4;
+  --surface-cockpit-text-muted: #a8a29e;
+  --cockpit-gradient: linear-gradient(135deg, rgba(0,229,255,0.06) 0%, transparent 60%);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.011em;
+  font-size: 1rem;
+}
+
+/* WattVision typography scale — titles 24/600, KPIs 32/700 bold. */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+h1 { font-weight: 700; letter-spacing: -0.03em; }
+
+/* ----------------------------------------------------------------------
+   WattVision weight rules — KPIs bold (replaces thin-display inversion).
+   Explicit font-* utilities still override via the cascade.
+----------------------------------------------------------------------- */
+.text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl { font-weight: 700; }
+.text-4xl                                              { font-weight: 700; }
+.text-3xl                                              { font-weight: 700; letter-spacing: -0.02em; }
+.text-2xl                                              { font-weight: 600; }
+.text-xl                                               { font-weight: 600; }
+.text-lg                                               { font-weight: 300; }
+.text-base                                             { font-weight: 300; }
+.text-sm                                               { font-weight: 300; }
+.text-xs                                               { font-weight: 500; }
+
+/* Uppercase eyebrows — mono + heavy for the WattVision "readout" look. */
+.uppercase.text-xs,
+.uppercase.text-sm {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+}
+
+/* Geist Mono for all data — numerals, eyebrows, code. */
+.font-mono,
+.tabular-nums,
+code,
+kbd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "ss01", "zero";
+}
+
+/* Display font utility — Space Grotesk, for section headings + cockpit labels
+   only.  Inter stays on body; Geist Mono stays on numerals. */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+/* Dashboard cockpit surface — dark ink + cyan gradient.  Single-purpose utility,
+   used only on the Dashboard's Survival Cockpit hero strip. */
+.surface-cockpit {
+  background-color: var(--surface-cockpit);
+  background-image: var(--cockpit-gradient);
+  color: var(--surface-cockpit-text);
+}
+/* Semantic text tokens inside the cockpit surface.
+   cockpit-text = primary (status labels, headings) — ~11:1 contrast on ink.
+   cockpit-muted = secondary (unit suffixes, caption rows) — ~6:1, still AA. */
+.surface-cockpit .cockpit-text  { color: var(--surface-cockpit-text); }
+.surface-cockpit .cockpit-muted { color: var(--surface-cockpit-text-muted); }
+
+/* Animations */
+@keyframes slide-in-from-right { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.88); } }
+@keyframes sparkline-draw { from { stroke-dashoffset: var(--dash-length, 1000); } to { stroke-dashoffset: 0; } }
+
+.animate-in   { animation: slide-in-from-right 0.3s ease-out; }
+.animate-out  { animation: fade-out 0.3s ease-out; }
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+.animate-sparkline-draw {
+  stroke-dasharray: var(--dash-length, 1000);
+  animation: sparkline-draw 600ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+/* Respect prefers-reduced-motion — disables every dashboard animation. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out,
+  .animate-pulse,
+  .animate-pulse-dot,
+  .animate-sparkline-draw { animation: none !important; }
+  .animate-sparkline-draw { stroke-dasharray: none !important; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--surface-muted); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-400); }
+
+*:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}

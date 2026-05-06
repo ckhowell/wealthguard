@@ -1,0 +1,33 @@
+# WealthGuard agent registry. Each agent maps to a .claude/agents/<name>.md file.
+# The harness reads this to know what to run (manually via --all, or via cron
+# per `schedule`). The `prompt` override is what gets sent to `claude -p`; keep
+# it short — the agent's markdown file carries the real instructions.
+
+agents:
+  - name: survival-guardian
+    schedule: daily
+    prompt: "Run the survival-guardian check now. Output only the report."
+
+  - name: runway-watcher
+    schedule: daily
+    prompt: "Run the runway-watcher check and output the terse daily line."
+
+  - name: data-auditor
+    schedule: daily
+    prompt: "Run every check. Terse markdown report, no padding."
+
+  - name: wealth-coach
+    schedule: daily
+    prompt: "Give today's 5-line status: runway, big risk, one action to take this week."
+
+  - name: feature-proposer
+    schedule: weekly
+    prompt: "Propose the single next highest-leverage feature to build in WealthGuard."
+
+  - name: contrarian
+    schedule: daily
+    prompt: "Rebut the last 7 days of agent consensus if you find a real counter-argument. Otherwise one line: no rebuttal."
+
+  - name: ui-ux-sweeper
+    schedule: weekly
+    prompt: "Sweep the frontend. Produce the prioritised punch-list."

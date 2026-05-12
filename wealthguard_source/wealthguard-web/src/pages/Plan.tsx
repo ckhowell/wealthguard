@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceLine, Legend,
+  ReferenceLine, Legend, ComposedChart, Line,
 } from 'recharts';
 import {
   Map, Save, AlertTriangle, CheckCircle2, Home, Hammer, PalmtreeIcon,
@@ -43,7 +43,7 @@ interface Plan {
 }
 
 interface SimRow {
-  month: string; burn: number; reno_spend: number; build_spend: number;
+  month: string; burn: number; income: number; reno_spend: number; build_spend: number;
   sale_in: number; net_month: number; cash: number; status: string;
 }
 interface SimResp {
@@ -83,6 +83,10 @@ const PlanContent = () => {
   const [error, setError] = useState<string | null>(null);
   const { toasts, addToast, removeToast } = useToast();
 
+  // Phase C — slider overrides for what-if modelling
+  const [nicoleOverride, setNicoleOverride] = useState<number | null>(null);
+  const [apyOverride, setApyOverride] = useState<number | null>(null);
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -102,7 +106,11 @@ const PlanContent = () => {
 
   const runSim = async () => {
     try {
-      const res = await fetch('/api/plan/simulate');
+      const params = new URLSearchParams();
+      if (nicoleOverride != null) params.set('nicole_income_override', String(nicoleOverride));
+      if (apyOverride != null) params.set('avg_apy_override', String(apyOverride));
+      const qs = params.toString();
+      const res = await fetch(`/api/plan/simulate${qs ? '?' + qs : ''}`);
       if (res.ok) {
         const data = await res.json();
         if (!data.error) setSim(data);
@@ -217,30 +225,127 @@ const PlanContent = () => {
         </div>
       )}
 
-      {/* ===== Income assumption strip — what's baked into this simulation ===== */}
+      {/* ===== Income assumption strip + sliders ===== */}
       {!income.loading && income.total_monthly > 0 && (
-        <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 border-l-2 border-l-cyan-500 rounded-2xl p-5">
-          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-            <div className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400">
-              Income baked into this simulation
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 border-l-2 border-l-cyan-500 rounded-2xl p-5">
+            <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+              <div className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                Income baked into this simulation
+              </div>
+              <div className="text-2xl text-stone-900 dark:text-stone-50 tabular-nums">
+                ${Math.round(income.total_monthly).toLocaleString()}/mo
+              </div>
+              <div className="text-base text-stone-700 dark:text-stone-300 tabular-nums">
+                Nicole ${Math.round(income.nicole_monthly).toLocaleString()} · interest ${Math.round(income.interest_monthly).toLocaleString()}
+                {income.staking_monthly > 0 && (
+                  <> · staking ${Math.round(income.staking_monthly).toLocaleString()}</>
+                )}
+                {' · net monthly surplus'}
+                <span className={`ml-1 ${income.net_surplus_per_month >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  {income.net_surplus_per_month >= 0 ? '+' : ''}${Math.round(income.net_surplus_per_month).toLocaleString()}
+                </span>
+              </div>
             </div>
-            <div className="text-2xl text-stone-900 dark:text-stone-50 tabular-nums">
-              ${Math.round(income.total_monthly).toLocaleString()}/mo
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+              Plan burn = living spend − this income. Drag sliders below to model what-if scenarios.
+            </p>
+          </div>
+
+          {/* What-if sliders */}
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                What-if modelling
+              </div>
+              <div className="flex items-center gap-2">
+                {(nicoleOverride != null || apyOverride != null) && (
+                  <span className="text-xs font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-700/60">
+                    Overrides active
+                  </span>
+                )}
+                <button
+                  onClick={runSim}
+                  disabled={loading}
+                  className="text-xs font-mono uppercase tracking-wider text-cyan-500 dark:text-cyan-400 hover:text-cyan-600 inline-flex items-center gap-1 disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                  Re-simulate
+                </button>
+                {(nicoleOverride != null || apyOverride != null) && (
+                  <button
+                    onClick={() => { setNicoleOverride(null); setApyOverride(null); }}
+                    className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 hover:text-stone-600"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="text-base text-stone-700 dark:text-stone-300 tabular-nums">
-              Nicole ${Math.round(income.nicole_monthly).toLocaleString()} · interest ${Math.round(income.interest_monthly).toLocaleString()}
-              {income.staking_monthly > 0 && (
-                <> · staking ${Math.round(income.staking_monthly).toLocaleString()}</>
-              )}
-              {' · net monthly surplus'}
-              <span className={`ml-1 ${income.net_surplus_per_month >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                {income.net_surplus_per_month >= 0 ? '+' : ''}${Math.round(income.net_surplus_per_month).toLocaleString()}
-              </span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Nicole income slider */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-stone-500 dark:text-stone-400">Nicole monthly income</label>
+                  <span className="text-sm tabular-nums font-mono text-stone-900 dark:text-stone-100">
+                    ${(nicoleOverride ?? income.nicole_monthly ?? 4000).toLocaleString()}/mo
+                    {nicoleOverride != null && (
+                      <span className="text-cyan-600 dark:text-cyan-400 ml-1">
+                        ({nicoleOverride > (income.nicole_monthly ?? 4000) ? '+' : ''}
+                        {Math.round(((nicoleOverride - (income.nicole_monthly ?? 4000)) / (income.nicole_monthly ?? 4000)) * 100)}%)
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={8000}
+                  step={100}
+                  value={nicoleOverride ?? income.nicole_monthly ?? 4000}
+                  onChange={e => setNicoleOverride(parseInt(e.target.value))}
+                  className="w-full accent-cyan-500"
+                />
+                <div className="flex justify-between text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                  <span>$0</span>
+                  <span>$8,000</span>
+                </div>
+              </div>
+
+              {/* APY slider */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-stone-500 dark:text-stone-400">Average cash APY</label>
+                  <span className="text-sm tabular-nums font-mono text-stone-900 dark:text-stone-100">
+                    {(apyOverride ?? (income.interest_monthly > 0 && income.total_cash > 0
+                      ? (income.interest_monthly * 12 / income.total_cash) * 100
+                      : 5.5
+                    )).toFixed(2)}%
+                    {apyOverride != null && (
+                      <span className="text-cyan-600 dark:text-cyan-400 ml-1">(override)</span>
+                    )}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={8}
+                  step={0.1}
+                  value={apyOverride ?? (income.interest_monthly > 0 && income.total_cash > 0
+                    ? (income.interest_monthly * 12 / income.total_cash) * 100
+                    : 5.5
+                  )}
+                  onChange={e => setApyOverride(parseFloat(e.target.value))}
+                  className="w-full accent-cyan-500"
+                />
+                <div className="flex justify-between text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                  <span>0%</span>
+                  <span>8%</span>
+                </div>
+              </div>
             </div>
           </div>
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-            Plan burn = living spend − this income. If Nicole's income changes or APY drops, re-save `wealth_plan.nicole_income_monthly` or the account's APY to resim.
-          </p>
         </div>
       )}
 

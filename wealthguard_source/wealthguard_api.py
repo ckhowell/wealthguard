@@ -5218,6 +5218,8 @@ def api_plan_simulate(
     lind_build_cost_override: Optional[float] = None,
     lind_sale_price_override: Optional[float] = None,
     lind_sale_month_delta: Optional[int] = None,
+    nicole_income_override: Optional[float] = None,
+    avg_apy_override: Optional[float] = None,
 ):
     """Month-by-month cashflow simulation with optional sensitivity overrides.
 
@@ -5277,6 +5279,8 @@ def api_plan_simulate(
         nicole_min = plan.get('nicole_income_monthly_min') or plan.get('nicole_income_monthly') or 0.0
         nicole_max = plan.get('nicole_income_monthly_max') or plan.get('nicole_income_monthly') or nicole_min
         nicole_monthly = nicole_min  # conservative default
+        if nicole_income_override is not None:
+            nicole_monthly = float(nicole_income_override)
         interest_rows = conn.execute(
             "SELECT current_balance, currency, apy, name FROM accounts "
             "WHERE is_active=1 AND type IN ('savings','checking') AND COALESCE(apy, 0) > 0"
@@ -5285,6 +5289,9 @@ def api_plan_simulate(
         for r in interest_rows:
             bal_aud = (r['current_balance'] or 0) * fx((r['currency'] or 'AUD').upper(), 'AUD')
             interest_monthly += bal_aud * (r['apy'] or 0) / 100.0 / 12.0
+        if avg_apy_override is not None:
+            total_cash = sum((r['current_balance'] or 0) * fx((r['currency'] or 'AUD').upper(), 'AUD') for r in cash_rows)
+            interest_monthly = total_cash * float(avg_apy_override) / 100.0 / 12.0
 
         # Crypto staking rewards — pull from the same source of truth used by
         # /api/advisor/runway so the plan trajectory doesn't silently understate
@@ -5363,9 +5370,11 @@ def api_plan_simulate(
     for ym in _month_iter(now_ym, end_ym):
         if retire_ym and ym >= retire_ym:
             burn = post_retire_burn - post_retire_income
+            income_monthly = post_retire_income
         else:
             # Pre-retirement: living spend minus Nicole's salary + savings interest.
             burn = baseline_burn - structured_income_monthly
+            income_monthly = structured_income_monthly
         reno_spend = acacia_spread.get(ym, 0)
         build_spend = lind_spread.get(ym, 0)
         sale_in = 0.0
@@ -5384,6 +5393,7 @@ def api_plan_simulate(
         series.append({
             'month': ym,
             'burn': round(burn, 0),
+            'income': round(income_monthly, 0),
             'reno_spend': round(reno_spend, 0),
             'build_spend': round(build_spend, 0),
             'sale_in': round(sale_in, 0),
@@ -5430,6 +5440,7 @@ def api_plan_simulate(
         'overrides_applied': any(v is not None for v in [
             acacia_sale_price_override, acacia_sale_month_delta,
             lind_build_cost_override, lind_sale_price_override, lind_sale_month_delta,
+            nicole_income_override, avg_apy_override,
         ]),
     }
 
